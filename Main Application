@@ -1,0 +1,73 @@
+from data_fetcher import CovidDataFetcher
+from data_processor import CovidDataProcessor
+from visualizer import CovidVisualizer
+import dash
+from dash import dcc, html
+from dash.dependencies import Input, Output
+import pandas as pd
+
+# Initialize components
+fetcher = CovidDataFetcher()
+global_data = fetcher.get_global_data()
+country_data = fetcher.get_country_data()
+historical_data = fetcher.get_historical_data()
+
+processor = CovidDataProcessor(global_data)
+processed_global = processor.process_global_data()
+
+processor = CovidDataProcessor(country_data)
+processed_countries = processor.process_country_data()
+
+processor = CovidDataProcessor({"cases": historical_data["cases"]})
+processed_historical = processor.process_historical_data()
+
+# Create Dash app
+app = dash.Dash(__name__)
+
+app.layout = html.Div([
+    html.H1("COVID-19 Global Data Tracker"),
+    
+    html.Div([
+        html.Div([
+            html.H3("Global Summary"),
+            dcc.Graph(
+                id="global-summary",
+                figure=CovidVisualizer.plot_global_summary(processed_global)
+            )
+        ], className="six columns"),
+        
+        html.Div([
+            html.H3("Top 10 Countries"),
+            dcc.Graph(
+                id="top-countries",
+                figure=CovidVisualizer.plot_top_countries(processed_countries)
+            )
+        ], className="six columns")
+    ], className="row"),
+    
+    html.Div([
+        dcc.Graph(
+            id="historical-trend",
+            figure=CovidVisualizer.plot_historical_trend(processed_historical)
+        )
+    ]),
+    
+    html.Div([
+        dcc.Graph(
+            id="mortality-recovery",
+            figure=CovidVisualizer.plot_mortality_vs_recovery(processed_countries)
+        )
+    ]),
+    
+    html.Div([
+        html.P(f"Last Updated: {processed_global['updated']}"),
+        dcc.Interval(
+            id='interval-component',
+            interval=3600*1000,  # 1 hour in milliseconds
+            n_intervals=0
+        )
+    ])
+])
+
+if __name__ == "__main__":
+    app.run_server(debug=True)
