@@ -1,0 +1,47 @@
+import plotly.express as px
+import matplotlib.pyplot as plt
+import pandas as pd
+
+class CovidVisualizer:
+    @staticmethod
+    def plot_global_summary(data):
+        fig = px.pie(
+            names=["Active", "Recovered", "Deaths"],
+            values=[data["active"], data["recovered"], data["deaths"]],
+            title="Global COVID-19 Cases Distribution"
+        )
+        return fig
+
+    @staticmethod
+    def plot_top_countries(data, n=10):
+        fig = px.bar(
+            data.head(n),
+            x="country",
+            y="cases",
+            color="cases",
+            title=f"Top {n} Countries by Total Cases"
+        )
+        return fig
+
+    @staticmethod
+    def plot_historical_trend(data):
+        fig = px.line(
+            data,
+            x="date",
+            y="cases",
+            title="Global COVID-19 Cases Over Time"
+        )
+        return fig
+
+    @staticmethod
+    def plot_mortality_vs_recovery(data):
+        fig = px.scatter(
+            data,
+            x="mortality_rate",
+            y="recovery_rate",
+            size="cases",
+            color="continent",
+            hover_name="country",
+            title="Mortality Rate vs Recovery Rate by Country"
+        )
+        return fig
