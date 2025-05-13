@@ -1,0 +1,27 @@
+import pandas as pd
+
+class CovidDataProcessor:
+    def __init__(self, raw_data):
+        self.raw_data = raw_data
+
+    def process_global_data(self):
+        return {
+            "cases": self.raw_data.get("cases", 0),
+            "deaths": self.raw_data.get("deaths", 0),
+            "recovered": self.raw_data.get("recovered", 0),
+            "active": self.raw_data.get("active", 0),
+            "updated": pd.to_datetime(self.raw_data.get("updated", 0), unit='ms')
+        }
+
+    def process_country_data(self):
+        df = pd.DataFrame(self.raw_data)
+        df = df.sort_values(by="cases", ascending=False)
+        df["mortality_rate"] = (df["deaths"] / df["cases"]) * 100
+        df["recovery_rate"] = (df["recovered"] / df["cases"]) * 100
+        return df
+
+    def process_historical_data(self):
+        df = pd.DataFrame(self.raw_data.get("cases", {}))
+        df = df.reset_index().rename(columns={"index": "date"})
+        df["date"] = pd.to_datetime(df["date"])
+        return df
